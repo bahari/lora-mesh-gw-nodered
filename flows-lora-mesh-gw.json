@@ -1,0 +1,1173 @@
+[
+    {
+        "id": "ea3d279a15fdab2c",
+        "type": "tab",
+        "label": "GPS Monitoring",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "154dd39cc6a7625b",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "string"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 190,
+        "y": 120,
+        "wires": [
+            [
+                "c46d04764e219344"
+            ]
+        ]
+    },
+    {
+        "id": "c46d04764e219344",
+        "type": "template",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<iframe src=\"/worldmap\" height=\"685px\" width=\"1065px\" style=\"border: none;\"></iframe>",
+        "x": 390,
+        "y": 120,
+        "wires": [
+            [
+                "8d8e6f07c75f53de"
+            ]
+        ]
+    },
+    {
+        "id": "ec5e3e161ffc4eb8",
+        "type": "comment",
+        "z": "ea3d279a15fdab2c",
+        "name": "Embed the map to the dashboard",
+        "info": "",
+        "x": 230,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "8d8e6f07c75f53de",
+        "type": "ui_template",
+        "z": "ea3d279a15fdab2c",
+        "group": "588b59ec17b6f2c1",
+        "name": "",
+        "order": 1,
+        "width": 20,
+        "height": 13,
+        "format": "<div ng-bind-html=\"msg.payload | trusted\"></div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 600,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1371fc0dcf238a00",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "processGPSData",
+        "func": "var rxData = \"\";\nvar numberData = \"\";\nvar userNameData = \"\";\nvar akaData = \"\";\nvar idData = \"\";\nvar latData = \"\";\nvar lonData = \"\";\nvar altData = \"\";\nvar battData = \"\";\nvar snrData = \"\";\nvar lastHrdData = \"\";\nvar sinceData = \"\";\n\nvar flgNumbDat = false;\nvar flgUsrDat = false;\nvar flgAkaDat = false;\nvar flgIdDat = false;\nvar flgLatDat = false;\nvar flgLonDat = false;\nvar flgAltDat = false;\nvar flgBattDat = false;\nvar flgSnrDat = false;\nvar flgLstHrdDat = false;\nvar flgSinceDat = false;\nvar flgDbg = false;\n\nvar msgType = \"\";\nvar strtExtract = false;\nvar oneDat = \"\";\nvar dbgData = \"\";\nvar exclamCnt = 0;\nvar jsonData = [];\nvar jsonDatCnt = 0;\n\n// Get the command protocol receive from the lora gateway\nrxData = msg.payload;\n// Go through the received protocol data\nfor (var i = 0 ; i < rxData.length; i++)\n{\n    oneDat = rxData.substring(i, i+1);\n    \n    if ((oneDat == \"!\") && (!strtExtract))\n    {\n        // Previously all mesh nodes data retrieval was completed\n        if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (flgLstHrdDat) && (flgSinceDat))\n        {\n            // Create JSON data\n            jsonData[jsonDatCnt] = {\n                \"name\": userNameData,\n                \"aka\": akaData,\n                \"ID\": idData,\n                \"SNR\" : snrData,\n                \"lat\": parseFloat(latData),\n                \"lon\": parseFloat(lonData),\n                \"SIDC\": \"ENOPA-------\",\n                \"options\": { \"fillOpacity\":0.8 }\n            }\n            jsonDatCnt++;\n            \n            // Initialize back all necessary variable\n            numberData = \"\";\n            userNameData = \"\";\n            akaData = \"\";\n            idData = \"\";\n            latData = \"\";\n            lonData = \"\";\n            altData = \"\";\n            battData = \"\";\n            snrData = \"\";\n            lastHrdData = \"\";\n            sinceData = \"\";\n            \n            flgUsrDat = false;\n            flgAkaDat = false;\n            flgIdDat = false;\n            flgLatDat = false;\n            flgLonDat = false;\n            flgAltDat = false;\n            flgBattDat = false;\n            flgSnrDat = false;\n            flgLstHrdDat = false;\n            flgSinceDat = false;\n            \n            flgNumbDat = true;\n            strtExtract = true;\n        }\n        else if (!flgNumbDat)\n        {\n            flgNumbDat = true;\n            strtExtract = true;\n        }\n        else if (!flgUsrDat)\n        {\n            flgUsrDat = true;\n            strtExtract = true;\n        }\n        else if (!flgAkaDat)\n        {\n            flgAkaDat = true;\n            strtExtract = true;\n        }\n        else if (!flgIdDat)\n        {\n            flgIdDat = true;\n            strtExtract = true;\n        }\n        else if (!flgLatDat)\n        {\n            flgLatDat = true;\n            strtExtract = true;\n        }\n        else if (!flgLonDat)\n        {\n            flgLonDat = true;\n            strtExtract = true;\n        }\n        else if (!flgAltDat)\n        {\n            flgAltDat = true;\n            strtExtract = true;\n        }\n        else if (!flgBattDat)\n        {\n            flgBattDat = true;\n            strtExtract = true;\n        }\n        else if (!flgSnrDat)\n        {\n            flgSnrDat = true;\n            strtExtract = true;\n        }\n        else if (!flgLstHrdDat)\n        {\n            flgLstHrdDat = true;\n            strtExtract = true;\n        }\n        else if (!flgSinceDat)\n        {\n            flgSinceDat = true;\n            strtExtract = true;\n        }\n    }\n    // Start extract the mesh nodes data\n    else if (strtExtract)\n    {\n        // Extract mesh data index number\n        if ((flgNumbDat) && (!flgUsrDat) && (!flgAkaDat) && (!flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                numberData += oneDat; \n            }\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data user name\n        else if ((flgNumbDat) && (flgUsrDat) && (!flgAkaDat) && (!flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                userNameData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }   \n        }\n        // Extract mesh data a.k.a data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (!flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                akaData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data id data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                idData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data latitude data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if ((oneDat != '!') && (oneDat != '[') && (oneDat != 'd') &&\n                (oneDat != 'e') && (oneDat != 'g') && (oneDat != 'r') &&\n                (oneDat != ']'))\n            {\n                latData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data longitude data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if ((oneDat != '!') && (oneDat != '[') && (oneDat != 'd') &&\n                (oneDat != 'e') && (oneDat != 'g') && (oneDat != 'r') &&\n                (oneDat != ']'))\n            {\n                lonData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data altitude data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                altData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data battery data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                battData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data SNR data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                snrData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                /*\n                if (!flgDbg)\n                {\n                    dbgData = snrData;\n                    flgDbg = true;\n                }\n                */\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data last heard data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                lastHrdData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data last heard data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (flgLstHrdDat) && (flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                sinceData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n    }\n}\n/*\n// Create JSON data\njsonData[jsonDatCnt] = {\n    \"name\": userNameData,\n    \"aka\": akaData,\n    \"ID\": idData,\n    \"SNR\" : snrData,\n    \"lat\": parseFloat(latData),\n    \"lon\": parseFloat(lonData),\n    \"SIDC\": \"ENOPA-------\",\n    \"options\": { \"fillOpacity\":0.8 }\n}\n*/\n// Create JSON data\njsonData[jsonDatCnt] = {\n    \"name\": userNameData,\n    \"aka\": akaData,\n    \"ID\": idData,\n    \"SNR\" : snrData,\n    \"lat\": parseFloat(latData),\n    \"lon\": parseFloat(lonData),\n    \"SIDC\": \"ENOPA-------\",\n    \"options\": { \"fillOpacity\":0.8 }\n}\nmsg.payload = jsonData;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 220,
+        "wires": [
+            [
+                "72ed7a4bb0979391",
+                "883e7661c26568a5"
+            ]
+        ]
+    },
+    {
+        "id": "074db9aee4e9c9bb",
+        "type": "tcp in",
+        "z": "ea3d279a15fdab2c",
+        "name": "TCP Server Nodes Data",
+        "server": "server",
+        "host": "",
+        "port": "6666",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "",
+        "topic": "",
+        "base64": false,
+        "x": 210,
+        "y": 260,
+        "wires": [
+            [
+                "92321565ba3f7dd5",
+                "1371fc0dcf238a00"
+            ]
+        ]
+    },
+    {
+        "id": "b41a047e3a2e07d3",
+        "type": "debug",
+        "z": "ea3d279a15fdab2c",
+        "d": true,
+        "name": "Debug Mesh Data",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "92321565ba3f7dd5",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "processNodesData",
+        "func": "var rxData = \"\";\nvar numberData = \"\";\nvar userNameData = \"\";\nvar akaData = \"\";\nvar idData = \"\";\nvar latData = \"\";\nvar lonData = \"\";\nvar altData = \"\";\nvar battData = \"\";\nvar snrData = \"\";\nvar lastHrdData = \"\";\nvar sinceData = \"\";\n\nvar flgNumbDat = false;\nvar flgUsrDat = false;\nvar flgAkaDat = false;\nvar flgIdDat = false;\nvar flgLatDat = false;\nvar flgLonDat = false;\nvar flgAltDat = false;\nvar flgBattDat = false;\nvar flgSnrDat = false;\nvar flgLstHrdDat = false;\nvar flgSinceDat = false;\nvar flgDbg = false;\n\nvar msgType = \"\";\nvar strtExtract = false;\nvar oneDat = \"\";\nvar dbgData = \"\";\nvar exclamCnt = 0;\nvar jsonData = [];\nvar jsonDatCnt = 0;\n\n// Get the data protocol received from the lora gateway\nrxData = msg.payload;\n// Go through the received protocol data\nfor (var i = 0 ; i < rxData.length; i++)\n{\n    oneDat = rxData.substring(i, i+1);\n    \n    if ((oneDat == \"!\") && (!strtExtract))\n    {\n        // Previously all mesh nodes data retrieval was completed\n        if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (flgLstHrdDat) && (flgSinceDat))\n        {\n            // Create JSON data\n            jsonData[jsonDatCnt] = {\n                \"User\": userNameData,\n                \"aka\": akaData,\n                \"ID\": idData,\n                \"Latitude [deg]\": latData,\n                \"Longitude [deg]\": lonData,\n                \"Altitude [m]\": altData,\n                \"Battery\": battData,\n                \"SNR\": snrData,\n                \"LastHeard\": lastHrdData,\n                \"Since\": sinceData\n            }\n            jsonDatCnt++;\n            \n            // Initialize back all necessary variable\n            numberData = \"\";\n            userNameData = \"\";\n            akaData = \"\";\n            idData = \"\";\n            latData = \"\";\n            lonData = \"\";\n            altData = \"\";\n            battData = \"\";\n            snrData = \"\";\n            lastHrdData = \"\";\n            sinceData = \"\";\n            \n            flgUsrDat = false;\n            flgAkaDat = false;\n            flgIdDat = false;\n            flgLatDat = false;\n            flgLonDat = false;\n            flgAltDat = false;\n            flgBattDat = false;\n            flgSnrDat = false;\n            flgLstHrdDat = false;\n            flgSinceDat = false;\n            \n            flgNumbDat = true;\n            strtExtract = true;\n        }\n        else if (!flgNumbDat)\n        {\n            flgNumbDat = true;\n            strtExtract = true;\n        }\n        else if (!flgUsrDat)\n        {\n            flgUsrDat = true;\n            strtExtract = true;\n        }\n        else if (!flgAkaDat)\n        {\n            flgAkaDat = true;\n            strtExtract = true;\n        }\n        else if (!flgIdDat)\n        {\n            flgIdDat = true;\n            strtExtract = true;\n        }\n        else if (!flgLatDat)\n        {\n            flgLatDat = true;\n            strtExtract = true;\n        }\n        else if (!flgLonDat)\n        {\n            flgLonDat = true;\n            strtExtract = true;\n        }\n        else if (!flgAltDat)\n        {\n            flgAltDat = true;\n            strtExtract = true;\n        }\n        else if (!flgBattDat)\n        {\n            flgBattDat = true;\n            strtExtract = true;\n        }\n        else if (!flgSnrDat)\n        {\n            flgSnrDat = true;\n            strtExtract = true;\n        }\n        else if (!flgLstHrdDat)\n        {\n            flgLstHrdDat = true;\n            strtExtract = true;\n        }\n        else if (!flgSinceDat)\n        {\n            flgSinceDat = true;\n            strtExtract = true;\n        }\n    }\n    // Start extract the mesh nodes data\n    else if (strtExtract)\n    {\n        // Extract mesh data index number\n        if ((flgNumbDat) && (!flgUsrDat) && (!flgAkaDat) && (!flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                numberData += oneDat; \n            }\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data user name\n        else if ((flgNumbDat) && (flgUsrDat) && (!flgAkaDat) && (!flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                userNameData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }   \n        }\n        // Extract mesh data a.k.a data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (!flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                akaData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data id data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (!flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                idData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data latitude data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (!flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if ((oneDat != '!') && (oneDat != '[') && (oneDat != 'd') &&\n                (oneDat != 'e') && (oneDat != 'g') && (oneDat != 'r') &&\n                (oneDat != ']'))\n            {\n                latData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data longitude data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (!flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if ((oneDat != '!') && (oneDat != '[') && (oneDat != 'd') &&\n                (oneDat != 'e') && (oneDat != 'g') && (oneDat != 'r') &&\n                (oneDat != ']'))\n            {\n                lonData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data altitude data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (!flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if ((oneDat != '!') && (oneDat != 'm'))\n            {\n                altData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data battery data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (!flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                battData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data SNR data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (!flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                snrData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                /*\n                if (!flgDbg)\n                {\n                    dbgData = snrData;\n                    flgDbg = true;\n                }\n                */\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data last heard data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (flgLstHrdDat) && (!flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                lastHrdData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data last heard data\n        else if ((flgNumbDat) && (flgUsrDat) && (flgAkaDat) && (flgIdDat) &&\n            (flgLatDat) && (flgLonDat) && (flgAltDat) && (flgBattDat) &&\n            (flgSnrDat) && (flgLstHrdDat) && (flgSinceDat))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                sinceData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n    }\n}\n// Create JSON data\njsonData[jsonDatCnt] = {\n    \"User\": userNameData,\n    \"aka\": akaData,\n    \"ID\": idData,\n    \"Latitude [deg]\": latData,\n    \"Longitude [deg]\": lonData,\n    \"Altitude [m]\": altData,\n    \"Battery\": battData,\n    \"SNR\": snrData,\n    \"LastHeard\": lastHrdData,\n    \"Since\": sinceData\n}\nmsg.payload = jsonData;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 300,
+        "wires": [
+            [
+                "f1cdf936a9a270f0",
+                "4e46f0ed20b89095",
+                "2c54e01397781387"
+            ]
+        ]
+    },
+    {
+        "id": "2c54e01397781387",
+        "type": "ui_table",
+        "z": "ea3d279a15fdab2c",
+        "group": "39ddf9de0bc016ed",
+        "name": "MESH Nodes Table",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "columns": [],
+        "outputs": 1,
+        "cts": true,
+        "x": 1050,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f1cdf936a9a270f0",
+        "type": "json",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 750,
+        "y": 340,
+        "wires": [
+            [
+                "b41a047e3a2e07d3",
+                "2c54e01397781387"
+            ]
+        ]
+    },
+    {
+        "id": "72ed7a4bb0979391",
+        "type": "json",
+        "z": "ea3d279a15fdab2c",
+        "d": true,
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 750,
+        "y": 160,
+        "wires": [
+            [
+                "b41a047e3a2e07d3"
+            ]
+        ]
+    },
+    {
+        "id": "c4802cc0b5925221",
+        "type": "tcp in",
+        "z": "ea3d279a15fdab2c",
+        "name": "TCP Server Messages Data",
+        "server": "server",
+        "host": "",
+        "port": "6667",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "",
+        "topic": "",
+        "base64": false,
+        "x": 160,
+        "y": 640,
+        "wires": [
+            [
+                "4970e7778506f139",
+                "e49d8ba9cc73a1f5"
+            ]
+        ]
+    },
+    {
+        "id": "1e5a1d159e839bc4",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Test Inject Message 01",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "!superman!spr!a443d17c!hello flash!Sunday, December 27, 2021 01:45:51",
+        "payloadType": "str",
+        "x": 200,
+        "y": 600,
+        "wires": [
+            [
+                "4970e7778506f139"
+            ]
+        ]
+    },
+    {
+        "id": "0aa89134dc729583",
+        "type": "change",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "messages",
+                "pt": "global",
+                "to": "NA",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "951e84381aaf62d2",
+        "type": "change",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "storedMeshData",
+                "pt": "global",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 520,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a9b5878a31d384bb",
+        "type": "json",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 750,
+        "y": 380,
+        "wires": [
+            [
+                "8cbbeb62de828cc9"
+            ]
+        ]
+    },
+    {
+        "id": "8cbbeb62de828cc9",
+        "type": "debug",
+        "z": "ea3d279a15fdab2c",
+        "name": "Debug Stored Mesh Data",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1070,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "4e46f0ed20b89095",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "processStoredMeshData",
+        "func": "global.set(\"storedMeshData\",msg.payload)\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 380,
+        "wires": [
+            [
+                "a9b5878a31d384bb"
+            ]
+        ]
+    },
+    {
+        "id": "1a447dd8a13e3620",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Display The Stored Data",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payloadType": "str",
+        "x": 470,
+        "y": 460,
+        "wires": [
+            [
+                "7513d48784541837"
+            ]
+        ]
+    },
+    {
+        "id": "7513d48784541837",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "dispStoredMeshData",
+        "func": "var retrStoredDat = \"\"\nretrStoredDat = global.get(\"storedMeshData\");\nmsg.payload = retrStoredDat;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 460,
+        "wires": [
+            [
+                "a9b5878a31d384bb"
+            ]
+        ]
+    },
+    {
+        "id": "54533c16479d2a8c",
+        "type": "ui_table",
+        "z": "ea3d279a15fdab2c",
+        "group": "70cfb34cf7310251",
+        "name": "Received Messages Table",
+        "order": 1,
+        "width": 18,
+        "height": 12,
+        "columns": [],
+        "outputs": 0,
+        "cts": false,
+        "x": 1010,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "4970e7778506f139",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "processRxMessages",
+        "func": "var rxData = \"\";\nvar userNameData = \"\";\nvar akaData = \"\";\nvar idData = \"\";\nvar msgContents = \"\"\nvar msgDateTime = \"\"\n\nvar flgUsrDat = false;\nvar flgAkaDat = false;\nvar flgIdDat = false;\nvar flgMsg = false;\nvar flgDateTime = false;\nvar flgDbg = false;\n\nvar msgType = \"\";\nvar strtExtract = false;\nvar oneDat = \"\";\nvar dbgData = \"\";\nvar testChkMsg = \"\";\nvar jsonData = [];\nvar jsonDatCnt = 0;\n\n// TEST stored messages JSON string availability\ntestChkMsg = global.get(\"messages\");\n// TEST stored messages counter availability\njsonDatCnt = global.get(\"messagesCnt\");\n// Previously HAS data\nif ((testChkMsg != \"NA\") && (jsonDatCnt != 0))\n{\n    jsonData = global.get(\"messages\");\n    jsonDatCnt = global.get(\"messagesCnt\");\n}\n\n// message payload: [%s], Date and Time: [%s], Sender ID: [%s], User Name: [%s], A.K.A: [%s]\n// Get the command protocol receive from the lora gateway\nrxData = msg.payload;\n// Go through the received protocol data\nfor (var i = 0 ; i < rxData.length; i++)\n{\n    oneDat = rxData.substring(i, i+1);\n    \n    if ((oneDat == \"!\") && (!strtExtract))\n    {\n        if (!flgUsrDat)\n        {\n            flgUsrDat = true;\n            strtExtract = true;\n        }\n        else if (!flgAkaDat)\n        {\n            flgAkaDat = true;\n            strtExtract = true;\n        }\n        else if (!flgIdDat)\n        {\n            flgIdDat = true;\n            strtExtract = true;\n        }\n        else if (!flgMsg)\n        {\n            flgMsg = true;\n            strtExtract = true;\n        }\n        else if (!flgDateTime)\n        {\n            flgDateTime = true;\n            strtExtract = true;\n        }\n    }\n    // Start extract the mesh nodes data\n    else if (strtExtract)\n    {\n        // Extract sender name\n        if ((flgUsrDat) && (!flgAkaDat) && (!flgIdDat) && (!flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                userNameData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }   \n        }\n        // Extract sender a.k.a data\n        else if ((flgUsrDat) && (flgAkaDat) && (!flgIdDat) && (!flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                akaData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract sender id data\n        else if ((flgUsrDat) && (flgAkaDat) && (flgIdDat) && (!flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                idData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract sender message data\n        else if ((flgUsrDat) && (flgAkaDat) && (flgIdDat) && (flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                msgContents += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data longitude data\n        else if ((flgUsrDat) && (flgAkaDat) && (flgIdDat) && (flgMsg) && \n            (flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!') \n            {\n                msgDateTime += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n    }\n}\n// Create JSON data\njsonData[jsonDatCnt] = {\n    \"Sender\": userNameData,\n    \"aka\": akaData,\n    \"ID\": idData,\n    \"Message\" : msgContents,\n    \"Date and Time\": msgDateTime\n}\njsonDatCnt++;\n// Create JSON data\njsonData[jsonDatCnt] = {\n    \"Sender\": \"-\",\n    \"aka\": \"-\",\n    \"ID\": \"-\",\n    \"Message\" : \"-\",\n    \"Date and Time\": \"-\"\n}\n// Copy the current messages to the global variable\nglobal.set(\"messages\",jsonData)\n// Copy the current messages counter to the global variable\nglobal.set(\"messagesCnt\",jsonDatCnt)\n\nmsg.payload = jsonData;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 640,
+        "wires": [
+            [
+                "040d360e9781be36",
+                "54533c16479d2a8c"
+            ]
+        ]
+    },
+    {
+        "id": "976defaf955db870",
+        "type": "change",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "messagesCnt",
+                "pt": "global",
+                "to": "0",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 510,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fc4740bbad023b12",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Initialize Messages ",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "NA",
+        "payloadType": "str",
+        "x": 230,
+        "y": 680,
+        "wires": [
+            [
+                "0aa89134dc729583"
+            ]
+        ]
+    },
+    {
+        "id": "03d5ed097d39b3d0",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Initialize Messages Counter",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "0",
+        "payloadType": "num",
+        "x": 260,
+        "y": 760,
+        "wires": [
+            [
+                "976defaf955db870"
+            ]
+        ]
+    },
+    {
+        "id": "d627473cb2ee7b3a",
+        "type": "comment",
+        "z": "ea3d279a15fdab2c",
+        "name": "Receives MESH Node Data",
+        "info": "",
+        "x": 220,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "11ac12d3492f6929",
+        "type": "comment",
+        "z": "ea3d279a15fdab2c",
+        "name": "Receives Text Messages",
+        "info": "",
+        "x": 190,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "9f195c3f26c52c43",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Display Stored Messages",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payloadType": "str",
+        "x": 250,
+        "y": 720,
+        "wires": [
+            [
+                "d4bbfff13038bb9a"
+            ]
+        ]
+    },
+    {
+        "id": "d4bbfff13038bb9a",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "dispStoredMsgData",
+        "func": "var retrStoredDat = \"\"\nretrStoredDat = global.get(\"messages\");\nmsg.payload = retrStoredDat;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 720,
+        "wires": [
+            [
+                "4e8ffc029333ed7f"
+            ]
+        ]
+    },
+    {
+        "id": "4e8ffc029333ed7f",
+        "type": "debug",
+        "z": "ea3d279a15fdab2c",
+        "name": "Debug Stored Msg Data",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "8f8ebd71639acbbe",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Display Stored Messages Cnt",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payloadType": "str",
+        "x": 260,
+        "y": 800,
+        "wires": [
+            [
+                "2e9869473f83b183"
+            ]
+        ]
+    },
+    {
+        "id": "2e9869473f83b183",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "dispStoredMsgCnt",
+        "func": "var retrStoredCnt = 0\nretrStoredCnt = global.get(\"messagesCnt\");\nmsg.payload = retrStoredCnt;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 800,
+        "wires": [
+            [
+                "c35010faa949fc11"
+            ]
+        ]
+    },
+    {
+        "id": "c35010faa949fc11",
+        "type": "debug",
+        "z": "ea3d279a15fdab2c",
+        "name": "Debug Stored Msg Cnt",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "b0ddd3cd814f7149",
+        "type": "debug",
+        "z": "ea3d279a15fdab2c",
+        "name": "Debug Received Message",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "040d360e9781be36",
+        "type": "json",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 750,
+        "y": 600,
+        "wires": [
+            [
+                "b0ddd3cd814f7149",
+                "54533c16479d2a8c"
+            ]
+        ]
+    },
+    {
+        "id": "95bd9d6bd0e66d51",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "Test Inject Message 02",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "!superman!spr!a443d17c!hello flash!Sunday, December 28, 2021 01:45:51",
+        "payloadType": "str",
+        "x": 200,
+        "y": 560,
+        "wires": [
+            [
+                "4970e7778506f139"
+            ]
+        ]
+    },
+    {
+        "id": "b4a8850ec23a2d97",
+        "type": "ui_toast",
+        "z": "ea3d279a15fdab2c",
+        "position": "top right",
+        "displayTime": "5",
+        "highlight": "",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "",
+        "name": "",
+        "x": 990,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "e49d8ba9cc73a1f5",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "msgRxNotify",
+        "func": "var rxData = \"\";\nvar userNameData = \"\";\nvar akaData = \"\";\nvar idData = \"\";\nvar msgContents = \"\"\nvar msgDateTime = \"\"\n\nvar flgUsrDat = false;\nvar flgAkaDat = false;\nvar flgIdDat = false;\nvar flgMsg = false;\nvar flgDateTime = false;\nvar flgDbg = false;\n\nvar msgNotify = \"\";\nvar strtExtract = false;\nvar oneDat = \"\";\n\n// message payload: [%s], Date and Time: [%s], Sender ID: [%s], User Name: [%s], A.K.A: [%s]\n// Get the command protocol receive from the lora gateway\nrxData = msg.payload;\n// Go through the received protocol data\nfor (var i = 0 ; i < rxData.length; i++)\n{\n    oneDat = rxData.substring(i, i+1);\n    \n    if ((oneDat == \"!\") && (!strtExtract))\n    {\n        if (!flgUsrDat)\n        {\n            flgUsrDat = true;\n            strtExtract = true;\n        }\n        else if (!flgAkaDat)\n        {\n            flgAkaDat = true;\n            strtExtract = true;\n        }\n        else if (!flgIdDat)\n        {\n            flgIdDat = true;\n            strtExtract = true;\n        }\n        else if (!flgMsg)\n        {\n            flgMsg = true;\n            strtExtract = true;\n        }\n        else if (!flgDateTime)\n        {\n            flgDateTime = true;\n            strtExtract = true;\n        }\n    }\n    // Start extract the mesh nodes data\n    else if (strtExtract)\n    {\n        // Extract sender name\n        if ((flgUsrDat) && (!flgAkaDat) && (!flgIdDat) && (!flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                userNameData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }   \n        }\n        // Extract sender a.k.a data\n        else if ((flgUsrDat) && (flgAkaDat) && (!flgIdDat) && (!flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                akaData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract sender id data\n        else if ((flgUsrDat) && (flgAkaDat) && (flgIdDat) && (!flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                idData += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract sender message data\n        else if ((flgUsrDat) && (flgAkaDat) && (flgIdDat) && (flgMsg) && \n            (!flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!')\n            {\n                msgContents += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n        // Extract mesh data longitude data\n        else if ((flgUsrDat) && (flgAkaDat) && (flgIdDat) && (flgMsg) && \n            (flgDateTime))\n        {\n            // Append the data as long as NOT an exclamation mark\n            if (oneDat != '!') \n            {\n                msgDateTime += oneDat;    \n            }\n            // Complete retrieve mesh data index number\n            else if (oneDat == '!')\n            {\n                i--;\n                strtExtract = false;\n            }\n        }\n    }\n}\n// Construct notification\nmsgNotify = \"Incoming Msg:\" + msgContents + \" - \" + \"From:\" + userNameData + \" - \" + \"Date&Time:\" + msgDateTime;\nmsg.payload = msgNotify;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 560,
+        "wires": [
+            [
+                "b4a8850ec23a2d97"
+            ]
+        ]
+    },
+    {
+        "id": "0fd5e3dd8f3c6ff2",
+        "type": "ui_text_input",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "label": "Enter Message To Send",
+        "tooltip": "Message Entry",
+        "group": "70cfb34cf7310251",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": "1",
+        "topic": "txtMsg",
+        "sendOnBlur": true,
+        "className": "",
+        "topicType": "msg",
+        "x": 750,
+        "y": 960,
+        "wires": [
+            [
+                "a2c5966f7301bdaf"
+            ]
+        ]
+    },
+    {
+        "id": "b004640f3b863df3",
+        "type": "ui_template",
+        "z": "ea3d279a15fdab2c",
+        "group": "588b59ec17b6f2c1",
+        "name": "Logo-Company ",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "format": "<script id=\"clockScript1\" type=\"text/javascript\">\n    var clockInterval;\n    $(function () {\n        if (clockInterval) return;\n\n        //add logo\n        var div1 = $('<div/>');\n        var logo = new Image();\n\n        logo.src = 'data:image/png;base64,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'\n        logo.height = 45;\n        //div1[0].style.margin = '10px auto';\n        div1[0].style.margin = 'auto 10px auto auto';\n        div1.append(logo);\n        \n        //add clock\n        var div2 = $('<div/>');\n        var p = $('<p/>');\n\n        div2.append(p);\n        div2[0].style.margin = '5px';\n        \n        function displayTime() {\n            p.text(new Date().toLocaleString());\n        }\n        \n        clockInterval = setInterval(displayTime, 1000);\n        \n        //add to toolbar when it's available\n        var addToToolbarTimer;\n        \n        function addToToolbar() {\n            var toolbar = $('.md-toolbar-tools');\n            \n            if(!toolbar.length) return;\n            \n            toolbar.append(div1);\n            //toolbar.append(div2);\n            clearInterval(addToToolbarTimer);\n        }\n        addToToolbarTimer = setInterval(addToToolbar, 100);\n    });\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": false,
+        "templateScope": "global",
+        "className": "",
+        "x": 180,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7e20ad5ca6a256e3",
+        "type": "ui_button",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "group": "70cfb34cf7310251",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Send Message",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "msgToSend",
+        "payloadType": "global",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 140,
+        "y": 960,
+        "wires": [
+            [
+                "5661026a64f283a7",
+                "97bc66d7cf01e66d"
+            ]
+        ]
+    },
+    {
+        "id": "883e7661c26568a5",
+        "type": "worldmap",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "lat": "",
+        "lon": "",
+        "zoom": "",
+        "layer": "OSMC",
+        "cluster": "",
+        "maxage": "",
+        "usermenu": "show",
+        "layers": "show",
+        "panit": "false",
+        "panlock": "false",
+        "zoomlock": "false",
+        "hiderightclick": "false",
+        "coords": "none",
+        "showgrid": "false",
+        "allowFileDrop": "false",
+        "path": "/worldmap",
+        "overlist": "DR,CO,RA,DN,HM",
+        "maplist": "OSMG,OSMC,EsriC,EsriS,EsriT,EsriDG,UKOS,SW",
+        "mapname": "",
+        "mapurl": "",
+        "mapopt": "",
+        "mapwms": false,
+        "x": 760,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "5661026a64f283a7",
+        "type": "switch",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 310,
+        "y": 960,
+        "wires": [
+            [
+                "ef6013217d8f651b"
+            ]
+        ]
+    },
+    {
+        "id": "ef6013217d8f651b",
+        "type": "change",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 960,
+        "wires": [
+            [
+                "0fd5e3dd8f3c6ff2"
+            ]
+        ]
+    },
+    {
+        "id": "a2c5966f7301bdaf",
+        "type": "switch",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 990,
+        "y": 960,
+        "wires": [
+            [
+                "291a10df955d1ffe"
+            ]
+        ]
+    },
+    {
+        "id": "ef3775c24d6f69c5",
+        "type": "tcp out",
+        "z": "ea3d279a15fdab2c",
+        "host": "127.0.0.1",
+        "port": "52001",
+        "beserver": "client",
+        "base64": false,
+        "end": false,
+        "name": "Transmit Text Messages",
+        "x": 750,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "161ba2bec0dd9412",
+        "type": "comment",
+        "z": "ea3d279a15fdab2c",
+        "name": "Transmit Text Messages",
+        "info": "",
+        "x": 170,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "7e235120c6b1589f",
+        "type": "change",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "msgToSend",
+                "pt": "global",
+                "to": "1",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 340,
+        "y": 920,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "620146a2f909d6c3",
+        "type": "inject",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1",
+        "payloadType": "str",
+        "x": 120,
+        "y": 920,
+        "wires": [
+            [
+                "7e235120c6b1589f"
+            ]
+        ]
+    },
+    {
+        "id": "291a10df955d1ffe",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "saveMsgCont",
+        "func": "global.set(\"msgToSend\",msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1200,
+        "y": 960,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "97bc66d7cf01e66d",
+        "type": "switch",
+        "z": "ea3d279a15fdab2c",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "1",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 310,
+        "y": 1000,
+        "wires": [
+            [
+                "6a03ac0277426b30"
+            ]
+        ]
+    },
+    {
+        "id": "6a03ac0277426b30",
+        "type": "function",
+        "z": "ea3d279a15fdab2c",
+        "name": "processSendTextMsg",
+        "func": "var getTextMsgData = \"\";\n\ngetTextMsgData = global.get(\"msgToSend\");\nmsg.payload = getTextMsgData;\nreturn[msg];",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 1000,
+        "wires": [
+            [
+                "ef3775c24d6f69c5"
+            ]
+        ]
+    },
+    {
+        "id": "84e8cf531631462e",
+        "type": "ui_spacer",
+        "z": "ea3d279a15fdab2c",
+        "name": "spacer",
+        "group": "70cfb34cf7310251",
+        "order": 2,
+        "width": 18,
+        "height": 1
+    },
+    {
+        "id": "95596352bba60556",
+        "type": "ui_spacer",
+        "z": "ea3d279a15fdab2c",
+        "name": "spacer",
+        "group": "70cfb34cf7310251",
+        "order": 3,
+        "width": 18,
+        "height": 1
+    },
+    {
+        "id": "588b59ec17b6f2c1",
+        "type": "ui_group",
+        "name": "MESH Nodes Position:",
+        "tab": "6a5567d0962938e2",
+        "order": 1,
+        "disp": true,
+        "width": "20",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "39ddf9de0bc016ed",
+        "type": "ui_group",
+        "name": "MESH Nodes Data:",
+        "tab": "6a5567d0962938e2",
+        "order": 2,
+        "disp": true,
+        "width": "20",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "70cfb34cf7310251",
+        "type": "ui_group",
+        "name": "Messaging:",
+        "tab": "6a5567d0962938e2",
+        "order": 4,
+        "disp": true,
+        "width": "18",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "6a5567d0962938e2",
+        "type": "ui_tab",
+        "name": "NC2+ MESH - Monitoring",
+        "icon": "gps_fixed",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
